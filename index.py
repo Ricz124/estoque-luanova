@@ -2,6 +2,7 @@ import customtkinter as ctk
 import mysql.connector
 from datetime import datetime
 from tkinter import ttk
+from tkinter import messagebox
 
 mydb = mysql.connector.connect(
   host="localhost",
@@ -14,6 +15,8 @@ mycursor = mydb.cursor()
 
 sql_insert = "INSERT INTO produtos (tipo_produto, nome_produto, medida, revestimento, cor_revestimento, quantidade, preco, estado, observacao, prod_entrada) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 sql_select = "SELECT * FROM produtos WHERE tipo_produto LIKE %s AND nome_produto LIKE %s AND medida LIKE %s AND revestimento LIKE %s AND cor_revestimento LIKE %s AND quantidade LIKE %s AND preco LIKE %s AND estado LIKE %s AND observacao LIKE %s"
+sql_update = "UPDATE produtos SET tipo_produto=%s, nome_produto=%s, medida=%s, revestimento=%s, cor_revestimento=%s, quantidade=%s, preco=%s, estado=%s, observacao=%s WHERE prod_id=%s"
+sql_get_by_id = "SELECT * FROM produtos WHERE prod_id=%s"
 
 def validate_float(value_if_allowed, text):
     if text in "0123456789.x":
@@ -49,6 +52,9 @@ def format_measurement(event):
 
 def insert_values():
     price_value = price_var.get().replace("R$", "").replace(",", "")
+    if not price_value:
+        messagebox.showerror("Erro", "O campo de preço não pode estar vazio.")
+        return
     current_datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     values = (
         tipo_produto_var.get(),
@@ -65,6 +71,41 @@ def insert_values():
     mycursor.execute(sql_insert, values)
     mydb.commit()
     print("Dados inseridos com sucesso!")
+    fetch_data()
+
+def update_values():
+    prod_id = id_var.get()
+    if not prod_id:
+        messagebox.showerror("Erro", "O campo de ID não pode estar vazio.")
+        return
+
+    mycursor.execute(sql_get_by_id, (prod_id,))
+    current_values = mycursor.fetchone()
+    if not current_values:
+        messagebox.showerror("Erro", "Produto não encontrado.")
+        return
+
+    price_value = price_var.get().replace("R$", "").replace(",", "")
+    if not price_value:
+        messagebox.showerror("Erro", "O campo de preço não pode estar vazio.")
+        return
+
+    new_values = (
+        tipo_produto_var.get() if tipo_produto_var.get() else current_values[1],
+        nome_produto_var.get() if nome_produto_var.get() else current_values[2],
+        measure_var.get() if measure_var.get() else current_values[3],
+        revestimento_var.get() if revestimento_var.get() else current_values[4],
+        cor_revestimento_var.get() if cor_revestimento_var.get() else current_values[5],
+        quantidade_var.get() if quantidade_var.get() else current_values[6],
+        float(price_value) if price_value else current_values[7],
+        estado_var.get() if estado_var.get() else current_values[8],
+        observacao_var.get() if observacao_var.get() else current_values[9],
+        prod_id
+    )
+
+    mycursor.execute(sql_update, new_values)
+    mydb.commit()
+    print("Dados atualizados com sucesso!")
     fetch_data()
 
 def fetch_data():
@@ -87,7 +128,7 @@ def fetch_data():
         tree.insert("", "end", values=row)
 
 # Configurando o estilo do customtkinter
-ctk.set_appearance_mode("light")
+ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
 root = ctk.CTk()
@@ -97,6 +138,7 @@ frm = ctk.CTkFrame(root)
 frm.grid()
 
 # Variáveis para armazenar os valores das entries e comboboxes
+id_var = ctk.StringVar()
 tipo_produto_var = ctk.StringVar()
 nome_produto_var = ctk.StringVar()
 measure_var = ctk.StringVar()
@@ -108,6 +150,7 @@ estado_var = ctk.StringVar()
 observacao_var = ctk.StringVar()
 
 dados_produto = {
+    "id": id_var,
     "tipo_produto": tipo_produto_var,
     "nome_produto": nome_produto_var,
     "measure": measure_var,
@@ -122,12 +165,15 @@ dados_produto = {
 # Labels e Entries alinhados
 ctk.CTkLabel(frm, text="ESTOQUE LUA NOVA COLCHÕES", font=('Snowy Night', 14)).grid(column=0, row=0, columnspan=5, pady=10)
 
-ctk.CTkLabel(frm, text="Tipo do Produto").grid(column=0, row=1, sticky="w", padx=5, pady=5)
-combobox_tipo_produto = ctk.CTkComboBox(frm, variable=tipo_produto_var, values=["Escolha Aqui", "Colchão", "Box", "Cabiçeira", "Produto Avulso"], width=150)
-combobox_tipo_produto.grid(column=0, row=2, sticky="w", padx=5, pady=5)
+ctk.CTkLabel(frm, text="ID do Produto").grid(column=0, row=1, sticky="w", padx=5, pady=5)
+ctk.CTkEntry(frm, textvariable=id_var, width=50).grid(column=0, row=2, sticky="w", padx=5, pady=5)
 
-ctk.CTkLabel(frm, text="Nome do Produto:").grid(column=1, row=1, sticky="w", padx=5, pady=5)
-ctk.CTkEntry(frm, textvariable=nome_produto_var, width=150).grid(column=1, row=2, sticky="w", padx=5, pady=5)
+ctk.CTkLabel(frm, text="Tipo do Produto").grid(column=1, row=1, sticky="w", padx=5, pady=5)
+combobox_tipo_produto = ctk.CTkComboBox(frm, variable=tipo_produto_var, values=["Escolha Aqui", "Colchão", "Box", "Cabiçeira", "Produto Avulso"], width=150)
+combobox_tipo_produto.grid(column=1, row=2, sticky="w", padx=5, pady=5)
+
+ctk.CTkLabel(frm, text="Nome do Produto:").grid(column=2, row=1, sticky="w", padx=5, pady=5)
+ctk.CTkEntry(frm, textvariable=nome_produto_var, width=150).grid(column=2, row=2, sticky="w", padx=5, pady=5)
 
 ctk.CTkLabel(frm, text="Medida:").grid(column=0, row=3, sticky="w", padx=5, pady=5)
 vcmd_measure = (root.register(validate_float), '%P', '%S')
@@ -162,10 +208,11 @@ ctk.CTkEntry(frm, textvariable=observacao_var, width=600).grid(column=0, row=8, 
 # Botões
 ctk.CTkButton(frm, text="Pesquisar", command=fetch_data).grid(column=0, row=9, sticky="w", padx=5, pady=10)
 ctk.CTkButton(frm, text="Registrar", command=insert_values).grid(column=1, row=9, sticky="w", padx=5, pady=10)
+ctk.CTkButton(frm, text="Editar", command=update_values).grid(column=2, row=9, sticky="w", padx=5, pady=10)
 
 # Tabela para mostrar os dados
-tree = ttk.Treeview(root, columns=("ID", "Tipo do Produto", "Nome do Produto", "Medida", "Revestimento", "Cor do Revestimento", "Quantidade", "Preço", "Estado", "Observação", "Data de Entrada"), show='headings')
-tree.heading("ID", text="ID")
+tree = ttk.Treeview(root, columns=("prod_id", "Tipo do Produto", "Nome do Produto", "Medida", "Revestimento", "Cor do Revestimento", "Quantidade", "Preço", "Estado", "Observação", "Data de Entrada"), show='headings')
+tree.heading("prod_id", text="ID")
 tree.heading("Tipo do Produto", text="Tipo do Produto")
 tree.heading("Nome do Produto", text="Nome do Produto")
 tree.heading("Medida", text="Medida")
@@ -178,7 +225,7 @@ tree.heading("Observação", text="Observação")
 tree.heading("Data de Entrada", text="Data de Entrada")
 
 # Ajustando a largura das colunas
-tree.column("ID", width=30)
+tree.column("prod_id", width=30)
 tree.column("Tipo do Produto", width=100)
 tree.column("Nome do Produto", width=100)
 tree.column("Medida", width=80)
