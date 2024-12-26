@@ -1,5 +1,4 @@
-from tkinter import *
-from tkinter import ttk
+import customtkinter as ctk
 import mysql.connector
 from datetime import datetime
 
@@ -13,8 +12,6 @@ mydb = mysql.connector.connect(
 mycursor = mydb.cursor()
 
 sql = "INSERT INTO produtos (tipo_produto, nome_produto, medida, revestimento, cor_revestimento, quantidade, preco, estado, observacao, prod_entrada) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-
-print(mydb)
 
 def validate_float(value_if_allowed, text):
     if text in "0123456789.x":
@@ -67,25 +64,26 @@ def insert_values():
     mydb.commit()
     print("Dados inseridos com sucesso!")
 
-root = Tk()
-frm = ttk.Frame(root, padding=10)
+# Configurando o estilo do customtkinter
+ctk.set_appearance_mode("light")
+ctk.set_default_color_theme("blue")
+
+root = ctk.CTk()
+root.title("Estoque Lua Nova Colchões")
+
+frm = ctk.CTkFrame(root, width=400, height=300)
 frm.grid()
 
-# Configurando o estilo dos botões
-style = ttk.Style()
-style.configure('TButton', background='black', foreground='white', font=('Snowy Night', 10))
-style.map('TButton', background=[('active', 'black')], foreground=[('active', 'white')])
-
 # Variáveis para armazenar os valores das entries e comboboxes
-tipo_produto_var = StringVar()
-nome_produto_var = StringVar()
-measure_var = StringVar()
-revestimento_var = StringVar()
-cor_revestimento_var = StringVar()
-quantidade_var = StringVar()
-price_var = StringVar()
-estado_var = StringVar()
-observacao_var = StringVar()
+tipo_produto_var = ctk.StringVar()
+nome_produto_var = ctk.StringVar()
+measure_var = ctk.StringVar()
+revestimento_var = ctk.StringVar()
+cor_revestimento_var = ctk.StringVar()
+quantidade_var = ctk.StringVar()
+price_var = ctk.StringVar()
+estado_var = ctk.StringVar()
+observacao_var = ctk.StringVar()
 
 dados_produto = {
     "tipo_produto": tipo_produto_var,
@@ -100,51 +98,47 @@ dados_produto = {
 }
 
 # Labels e Entries alinhados
-ttk.Label(frm, text="ESTOQUE LUA NOVA COLCHÕES", font=('Snowy Night', 14), background='black', foreground='white').grid(column=0, row=0, columnspan=5, pady=10)
+ctk.CTkLabel(frm, text="ESTOQUE LUA NOVA COLCHÕES", font=('Snowy Night', 14)).grid(column=0, row=0, columnspan=5, pady=10)
 
-ttk.Label(frm, text="Tipo do Produto").grid(column=0, row=1, sticky=W, padx=5, pady=5)
-combobox_tipo_produto = ttk.Combobox(frm, textvariable=tipo_produto_var, values=["nulo", "Colchão", "Box", "Cabiçeira", "Produto Avulso"], width=22)
-combobox_tipo_produto.grid(column=0, row=2, sticky=W, padx=5, pady=5)
-combobox_tipo_produto.current(0)
+ctk.CTkLabel(frm, text="Tipo do Produto").grid(column=0, row=1, sticky="w", padx=5, pady=5)
+combobox_tipo_produto = ctk.CTkComboBox(frm, variable=tipo_produto_var, values=["Escolha Aqui", "Colchão", "Box", "Cabiçeira", "Produto Avulso"], width=200)
+combobox_tipo_produto.grid(column=0, row=2, sticky="w", padx=5, pady=5)
 
-ttk.Label(frm, text="Nome do Produto:").grid(column=1, row=1, sticky=W, padx=5, pady=5)
-ttk.Entry(frm, textvariable=nome_produto_var, width=24).grid(column=1, row=2, sticky=W, padx=5, pady=5)
+ctk.CTkLabel(frm, text="Nome do Produto:").grid(column=1, row=1, sticky="w", padx=5, pady=5)
+ctk.CTkEntry(frm, textvariable=nome_produto_var, width=200).grid(column=1, row=2, sticky="w", padx=5, pady=5)
 
-ttk.Label(frm, text="Medida:").grid(column=0, row=3, sticky=W, padx=5, pady=5)
+ctk.CTkLabel(frm, text="Medida:").grid(column=0, row=3, sticky="w", padx=5, pady=5)
 vcmd_measure = (root.register(validate_float), '%P', '%S')
-measure_entry = ttk.Entry(frm, textvariable=measure_var, validate='key', validatecommand=vcmd_measure, width=24)
-measure_entry.grid(column=0, row=4, sticky=W, padx=5, pady=5)
+measure_entry = ctk.CTkEntry(frm, textvariable=measure_var, validate='key', validatecommand=vcmd_measure, width=200)
+measure_entry.grid(column=0, row=4, sticky="w", padx=5, pady=5)
 measure_entry.bind('<FocusOut>', format_measurement)
 
-ttk.Label(frm, text="Revestimento").grid(column=1, row=3, sticky=W, padx=5, pady=5)
-combobox_revestimento = ttk.Combobox(frm, textvariable=revestimento_var, values=["nulo", "Corino", "Linhão", "Suede"], width=22)
-combobox_revestimento.grid(column=1, row=4, sticky=W, padx=5, pady=5)
-combobox_revestimento.current(0)
+ctk.CTkLabel(frm, text="Revestimento").grid(column=1, row=3, sticky="w", padx=5, pady=5)
+combobox_revestimento = ctk.CTkComboBox(frm, variable=revestimento_var, values=["Escolha Aqui", "Corino", "Linhão", "Suede"], width=200)
+combobox_revestimento.grid(column=1, row=4, sticky="w", padx=5, pady=5)
 
-ttk.Label(frm, text="Cor do Revestimento").grid(column=2, row=3, sticky=W, padx=5, pady=5)
-combobox_cor_revestimento = ttk.Combobox(frm, textvariable=cor_revestimento_var, values=["nulo", "Branco", "Bege", "Marrom", "Preto", "Palha", "Ocre", "Cinza", "Cosmo", "Rosé"], width=22)
-combobox_cor_revestimento.grid(column=2, row=4, sticky=W, padx=5, pady=5)
-combobox_cor_revestimento.current(0)
+ctk.CTkLabel(frm, text="Cor do Revestimento").grid(column=2, row=3, sticky="w", padx=5, pady=5)
+combobox_cor_revestimento = ctk.CTkComboBox(frm, variable=cor_revestimento_var, values=["Escolha Aqui", "Branco", "Bege", "Marrom", "Preto", "Palha", "Ocre", "Cinza", "Cosmo", "Rosé"], width=200)
+combobox_cor_revestimento.grid(column=2, row=4, sticky="w", padx=5, pady=5)
 
-ttk.Label(frm, text="Quantidade:").grid(column=3, row=3, sticky=W, padx=5, pady=5)
-ttk.Entry(frm, textvariable=quantidade_var, width=6).grid(column=3, row=4, sticky=W, padx=5, pady=5)
+ctk.CTkLabel(frm, text="Quantidade:").grid(column=3, row=3, sticky="w", padx=5, pady=5)
+ctk.CTkEntry(frm, textvariable=quantidade_var, width=50).grid(column=3, row=4, sticky="w", padx=5, pady=5)
 
-ttk.Label(frm, text="Preço:").grid(column=4, row=3, sticky=W, padx=5, pady=5)
+ctk.CTkLabel(frm, text="Preço:").grid(column=4, row=3, sticky="w", padx=5, pady=5)
 vcmd_price = (root.register(validate_float), '%P', '%S')
-price_entry = ttk.Entry(frm, textvariable=price_var, validate='key', validatecommand=vcmd_price, width=10)
-price_entry.grid(column=4, row=4, sticky=W, padx=5, pady=5)
+price_entry = ctk.CTkEntry(frm, textvariable=price_var, validate='key', validatecommand=vcmd_price, width=100)
+price_entry.grid(column=4, row=4, sticky="w", padx=5, pady=5)
 price_entry.bind('<FocusOut>', format_currency)
 
-ttk.Label(frm, text="Estado").grid(column=0, row=5, sticky=W, padx=5, pady=5)
-combobox_estado = ttk.Combobox(frm, textvariable=estado_var, values=["Escolha Aqui", "Novo", "Defeito", "Mostruário"], width=22)
-combobox_estado.grid(column=0, row=6, sticky=W, padx=5, pady=5)
-combobox_estado.current(0)
+ctk.CTkLabel(frm, text="Estado").grid(column=0, row=5, sticky="w", padx=5, pady=5)
+combobox_estado = ctk.CTkComboBox(frm, variable=estado_var, values=["Escolha Aqui", "Novo", "Defeito", "Mostruário"], width=200)
+combobox_estado.grid(column=0, row=6, sticky="w", padx=5, pady=5)
 
-ttk.Label(frm, text="Observação:").grid(column=0, row=7, sticky=W, padx=5, pady=5)
-ttk.Entry(frm, textvariable=observacao_var, width=90).grid(column=0, row=8, columnspan=5, sticky=W, padx=5, pady=5)
+ctk.CTkLabel(frm, text="Observação:").grid(column=0, row=7, sticky="w", padx=5, pady=5)
+ctk.CTkEntry(frm, textvariable=observacao_var, width=600).grid(column=0, row=8, columnspan=5, sticky="w", padx=5, pady=5)
 
 # Botões
-ttk.Button(frm, text="Pesquisar", style='TButton').grid(column=0, row=9, sticky=W, padx=5, pady=10)
-ttk.Button(frm, text="Registrar", style='TButton', command=insert_values).grid(column=1, row=9, sticky=W, padx=5, pady=10)
+ctk.CTkButton(frm, text="Pesquisar").grid(column=0, row=9, sticky="w", padx=5, pady=10)
+ctk.CTkButton(frm, text="Registrar", command=insert_values).grid(column=1, row=9, sticky="w", padx=5, pady=10)
 
 root.mainloop()
