@@ -17,6 +17,8 @@ sql_insert = "INSERT INTO produtos (tipo_produto, nome_produto, medida, revestim
 sql_select = "SELECT * FROM produtos WHERE tipo_produto LIKE %s AND nome_produto LIKE %s AND medida LIKE %s AND revestimento LIKE %s AND cor_revestimento LIKE %s AND quantidade LIKE %s AND preco LIKE %s AND estado LIKE %s AND observacao LIKE %s"
 sql_update = "UPDATE produtos SET tipo_produto=%s, nome_produto=%s, medida=%s, revestimento=%s, cor_revestimento=%s, quantidade=%s, preco=%s, estado=%s, observacao=%s WHERE prod_id=%s"
 sql_get_by_id = "SELECT * FROM produtos WHERE prod_id=%s"
+sql_update_quantity = "UPDATE produtos SET quantidade=%s, prod_entrada=%s WHERE prod_id=%s"
+sql_update_quantity_saida = "UPDATE produtos SET quantidade=%s, prod_saida=%s WHERE prod_id=%s"
 
 def validate_float(value_if_allowed, text):
     if text in "0123456789.x":
@@ -72,6 +74,7 @@ def insert_values():
     mydb.commit()
     print("Dados inseridos com sucesso!")
     fetch_data()
+    clear_inputs()
 
 def update_values():
     prod_id = id_var.get()
@@ -107,6 +110,47 @@ def update_values():
     mydb.commit()
     print("Dados atualizados com sucesso!")
     fetch_data()
+    clear_inputs()
+
+def entrada_produto():
+    prod_id = id_var.get()
+    if not prod_id:
+        messagebox.showerror("Erro", "O campo de ID não pode estar vazio.")
+        return
+
+    mycursor.execute(sql_get_by_id, (prod_id,))
+    current_values = mycursor.fetchone()
+    if not current_values:
+        messagebox.showerror("Erro", "Produto não encontrado.")
+        return
+
+    new_quantity = current_values[6] + 1
+    current_datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    mycursor.execute(sql_update_quantity, (new_quantity, current_datetime, prod_id))
+    mydb.commit()
+    print("Quantidade atualizada com sucesso!")
+    fetch_data()
+    clear_inputs()
+
+def saida_produto():
+    prod_id = id_var.get()
+    if not prod_id:
+        messagebox.showerror("Erro", "O campo de ID não pode estar vazio.")
+        return
+
+    mycursor.execute(sql_get_by_id, (prod_id,))
+    current_values = mycursor.fetchone()
+    if not current_values:
+        messagebox.showerror("Erro", "Produto não encontrado.")
+        return
+
+    new_quantity = current_values[6] - 1
+    current_datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    mycursor.execute(sql_update_quantity_saida, (new_quantity, current_datetime, prod_id))
+    mydb.commit()
+    print("Quantidade atualizada com sucesso!")
+    fetch_data()
+    clear_inputs()
 
 def fetch_data():
     for row in tree.get_children():
@@ -126,6 +170,19 @@ def fetch_data():
     rows = mycursor.fetchall()
     for row in rows:
         tree.insert("", "end", values=row)
+    clear_inputs()
+
+def clear_inputs():
+    id_var.set("")
+    tipo_produto_var.set("")
+    nome_produto_var.set("")
+    measure_var.set("")
+    revestimento_var.set("")
+    cor_revestimento_var.set("")
+    quantidade_var.set("")
+    price_var.set("")
+    estado_var.set("")
+    observacao_var.set("")
 
 # Configurando o estilo do customtkinter
 ctk.set_appearance_mode("dark")
@@ -209,9 +266,11 @@ ctk.CTkEntry(frm, textvariable=observacao_var, width=600).grid(column=0, row=8, 
 ctk.CTkButton(frm, text="Pesquisar", command=fetch_data).grid(column=0, row=9, sticky="w", padx=5, pady=10)
 ctk.CTkButton(frm, text="Registrar", command=insert_values).grid(column=1, row=9, sticky="w", padx=5, pady=10)
 ctk.CTkButton(frm, text="Editar", command=update_values).grid(column=2, row=9, sticky="w", padx=5, pady=10)
+ctk.CTkButton(frm, text="Entrada", command=entrada_produto).grid(column=3, row=9, sticky="w", padx=5, pady=10)
+ctk.CTkButton(frm, text="Saída", command=saida_produto).grid(column=4, row=9, sticky="w", padx=5, pady=10)
 
 # Tabela para mostrar os dados
-tree = ttk.Treeview(root, columns=("prod_id", "Tipo do Produto", "Nome do Produto", "Medida", "Revestimento", "Cor do Revestimento", "Quantidade", "Preço", "Estado", "Observação", "Data de Entrada"), show='headings')
+tree = ttk.Treeview(root, columns=("prod_id", "Tipo do Produto", "Nome do Produto", "Medida", "Revestimento", "Cor do Revestimento", "Quantidade", "Preço", "Estado", "Observação", "Data de Entrada", "Data de Saída"), show='headings')
 tree.heading("prod_id", text="ID")
 tree.heading("Tipo do Produto", text="Tipo do Produto")
 tree.heading("Nome do Produto", text="Nome do Produto")
@@ -223,6 +282,7 @@ tree.heading("Preço", text="Preço")
 tree.heading("Estado", text="Estado")
 tree.heading("Observação", text="Observação")
 tree.heading("Data de Entrada", text="Data de Entrada")
+tree.heading("Data de Saída", text="Data de Saída")
 
 # Ajustando a largura das colunas
 tree.column("prod_id", width=30)
@@ -236,6 +296,7 @@ tree.column("Preço", width=80)
 tree.column("Estado", width=80)
 tree.column("Observação", width=150)
 tree.column("Data de Entrada", width=100)
+tree.column("Data de Saída", width=100)
 
 tree.grid(column=0, row=10, columnspan=5, padx=5, pady=10)
 
