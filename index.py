@@ -1,6 +1,7 @@
 import customtkinter as ctk
 import mysql.connector
 from datetime import datetime
+from tkinter import ttk
 
 mydb = mysql.connector.connect(
   host="localhost",
@@ -11,7 +12,8 @@ mydb = mysql.connector.connect(
 
 mycursor = mydb.cursor()
 
-sql = "INSERT INTO produtos (tipo_produto, nome_produto, medida, revestimento, cor_revestimento, quantidade, preco, estado, observacao, prod_entrada) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+sql_insert = "INSERT INTO produtos (tipo_produto, nome_produto, medida, revestimento, cor_revestimento, quantidade, preco, estado, observacao, prod_entrada) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+sql_select = "SELECT * FROM produtos WHERE tipo_produto LIKE %s AND nome_produto LIKE %s AND medida LIKE %s AND revestimento LIKE %s AND cor_revestimento LIKE %s AND quantidade LIKE %s AND preco LIKE %s AND estado LIKE %s AND observacao LIKE %s"
 
 def validate_float(value_if_allowed, text):
     if text in "0123456789.x":
@@ -60,15 +62,29 @@ def insert_values():
         observacao_var.get(),
         current_datetime
     )
-    mycursor.execute(sql, values)
+    mycursor.execute(sql_insert, values)
     mydb.commit()
     print("Dados inseridos com sucesso!")
+    fetch_data()
 
-def pegar_valores():
-    mycursor.execute("SELECT * FROM produtos")
-    myresult = mycursor.fetchall()
-    for x in myresult:
-        print(x)
+def fetch_data():
+    for row in tree.get_children():
+        tree.delete(row)
+    search_values = (
+        f"%{tipo_produto_var.get()}%",
+        f"%{nome_produto_var.get()}%",
+        f"%{measure_var.get()}%",
+        f"%{revestimento_var.get()}%",
+        f"%{cor_revestimento_var.get()}%",
+        f"%{quantidade_var.get()}%",
+        f"%{price_var.get()}%",
+        f"%{estado_var.get()}%",
+        f"%{observacao_var.get()}%"
+    )
+    mycursor.execute(sql_select, search_values)
+    rows = mycursor.fetchall()
+    for row in rows:
+        tree.insert("", "end", values=row)
 
 # Configurando o estilo do customtkinter
 ctk.set_appearance_mode("light")
@@ -77,7 +93,7 @@ ctk.set_default_color_theme("blue")
 root = ctk.CTk()
 root.title("Estoque Lua Nova Colchões")
 
-frm = ctk.CTkFrame(root, width=400, height=300)
+frm = ctk.CTkFrame(root)
 frm.grid()
 
 # Variáveis para armazenar os valores das entries e comboboxes
@@ -107,24 +123,24 @@ dados_produto = {
 ctk.CTkLabel(frm, text="ESTOQUE LUA NOVA COLCHÕES", font=('Snowy Night', 14)).grid(column=0, row=0, columnspan=5, pady=10)
 
 ctk.CTkLabel(frm, text="Tipo do Produto").grid(column=0, row=1, sticky="w", padx=5, pady=5)
-combobox_tipo_produto = ctk.CTkComboBox(frm, variable=tipo_produto_var, values=["Escolha Aqui", "Colchão", "Box", "Cabiçeira", "Produto Avulso"], width=200)
+combobox_tipo_produto = ctk.CTkComboBox(frm, variable=tipo_produto_var, values=["Escolha Aqui", "Colchão", "Box", "Cabiçeira", "Produto Avulso"], width=150)
 combobox_tipo_produto.grid(column=0, row=2, sticky="w", padx=5, pady=5)
 
 ctk.CTkLabel(frm, text="Nome do Produto:").grid(column=1, row=1, sticky="w", padx=5, pady=5)
-ctk.CTkEntry(frm, textvariable=nome_produto_var, width=200).grid(column=1, row=2, sticky="w", padx=5, pady=5)
+ctk.CTkEntry(frm, textvariable=nome_produto_var, width=150).grid(column=1, row=2, sticky="w", padx=5, pady=5)
 
 ctk.CTkLabel(frm, text="Medida:").grid(column=0, row=3, sticky="w", padx=5, pady=5)
 vcmd_measure = (root.register(validate_float), '%P', '%S')
-measure_entry = ctk.CTkEntry(frm, textvariable=measure_var, validate='key', validatecommand=vcmd_measure, width=200)
+measure_entry = ctk.CTkEntry(frm, textvariable=measure_var, validate='key', validatecommand=vcmd_measure, width=150)
 measure_entry.grid(column=0, row=4, sticky="w", padx=5, pady=5)
 measure_entry.bind('<FocusOut>', format_measurement)
 
 ctk.CTkLabel(frm, text="Revestimento").grid(column=1, row=3, sticky="w", padx=5, pady=5)
-combobox_revestimento = ctk.CTkComboBox(frm, variable=revestimento_var, values=["Escolha Aqui", "Corino", "Linhão", "Suede"], width=200)
+combobox_revestimento = ctk.CTkComboBox(frm, variable=revestimento_var, values=["Escolha Aqui", "Corino", "Linhão", "Suede"], width=150)
 combobox_revestimento.grid(column=1, row=4, sticky="w", padx=5, pady=5)
 
 ctk.CTkLabel(frm, text="Cor do Revestimento").grid(column=2, row=3, sticky="w", padx=5, pady=5)
-combobox_cor_revestimento = ctk.CTkComboBox(frm, variable=cor_revestimento_var, values=["Escolha Aqui", "Branco", "Bege", "Marrom", "Preto", "Palha", "Ocre", "Cinza", "Cosmo", "Rosé"], width=200)
+combobox_cor_revestimento = ctk.CTkComboBox(frm, variable=cor_revestimento_var, values=["Escolha Aqui", "Branco", "Bege", "Marrom", "Preto", "Palha", "Ocre", "Cinza", "Cosmo", "Rosé"], width=150)
 combobox_cor_revestimento.grid(column=2, row=4, sticky="w", padx=5, pady=5)
 
 ctk.CTkLabel(frm, text="Quantidade:").grid(column=3, row=3, sticky="w", padx=5, pady=5)
@@ -137,14 +153,45 @@ price_entry.grid(column=4, row=4, sticky="w", padx=5, pady=5)
 price_entry.bind('<FocusOut>', format_currency)
 
 ctk.CTkLabel(frm, text="Estado").grid(column=0, row=5, sticky="w", padx=5, pady=5)
-combobox_estado = ctk.CTkComboBox(frm, variable=estado_var, values=["Escolha Aqui", "Novo", "Defeito", "Mostruário"], width=200)
+combobox_estado = ctk.CTkComboBox(frm, variable=estado_var, values=["Escolha Aqui", "Novo", "Defeito", "Mostruário"], width=150)
 combobox_estado.grid(column=0, row=6, sticky="w", padx=5, pady=5)
 
 ctk.CTkLabel(frm, text="Observação:").grid(column=0, row=7, sticky="w", padx=5, pady=5)
 ctk.CTkEntry(frm, textvariable=observacao_var, width=600).grid(column=0, row=8, columnspan=5, sticky="w", padx=5, pady=5)
 
 # Botões
-ctk.CTkButton(frm, text="Pesquisar", command=pegar_valores).grid(column=0, row=9, sticky="w", padx=5, pady=10)
+ctk.CTkButton(frm, text="Pesquisar", command=fetch_data).grid(column=0, row=9, sticky="w", padx=5, pady=10)
 ctk.CTkButton(frm, text="Registrar", command=insert_values).grid(column=1, row=9, sticky="w", padx=5, pady=10)
+
+# Tabela para mostrar os dados
+tree = ttk.Treeview(root, columns=("ID", "Tipo do Produto", "Nome do Produto", "Medida", "Revestimento", "Cor do Revestimento", "Quantidade", "Preço", "Estado", "Observação", "Data de Entrada"), show='headings')
+tree.heading("ID", text="ID")
+tree.heading("Tipo do Produto", text="Tipo do Produto")
+tree.heading("Nome do Produto", text="Nome do Produto")
+tree.heading("Medida", text="Medida")
+tree.heading("Revestimento", text="Revestimento")
+tree.heading("Cor do Revestimento", text="Cor do Revestimento")
+tree.heading("Quantidade", text="Quantidade")
+tree.heading("Preço", text="Preço")
+tree.heading("Estado", text="Estado")
+tree.heading("Observação", text="Observação")
+tree.heading("Data de Entrada", text="Data de Entrada")
+
+# Ajustando a largura das colunas
+tree.column("ID", width=30)
+tree.column("Tipo do Produto", width=100)
+tree.column("Nome do Produto", width=100)
+tree.column("Medida", width=80)
+tree.column("Revestimento", width=100)
+tree.column("Cor do Revestimento", width=100)
+tree.column("Quantidade", width=80)
+tree.column("Preço", width=80)
+tree.column("Estado", width=80)
+tree.column("Observação", width=150)
+tree.column("Data de Entrada", width=100)
+
+tree.grid(column=0, row=10, columnspan=5, padx=5, pady=10)
+
+fetch_data()
 
 root.mainloop()
