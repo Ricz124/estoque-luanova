@@ -19,6 +19,7 @@ sql_update = "UPDATE produtos SET tipo_produto=%s, nome_produto=%s, medida=%s, r
 sql_get_by_id = "SELECT * FROM produtos WHERE prod_id=%s"
 sql_update_quantity = "UPDATE produtos SET quantidade=%s, prod_entrada=%s WHERE prod_id=%s"
 sql_update_quantity_saida = "UPDATE produtos SET quantidade=%s, prod_saida=%s WHERE prod_id=%s"
+sql_delete = "DELETE FROM produtos WHERE prod_id=%s"
 
 def validate_float(value_if_allowed, text):
     if text in "0123456789.x":
@@ -152,6 +153,18 @@ def saida_produto():
     fetch_data()
     clear_inputs()
 
+def remover_produto():
+    prod_id = id_var.get()
+    if not prod_id:
+        messagebox.showerror("Erro", "O campo de ID não pode estar vazio.")
+        return
+
+    mycursor.execute(sql_delete, (prod_id,))
+    mydb.commit()
+    print("Produto removido com sucesso!")
+    fetch_data()
+    clear_inputs()
+
 def fetch_data():
     for row in tree.get_children():
         tree.delete(row)
@@ -268,6 +281,7 @@ ctk.CTkButton(frm, text="Registrar", command=insert_values).grid(column=1, row=9
 ctk.CTkButton(frm, text="Editar", command=update_values).grid(column=2, row=9, sticky="w", padx=5, pady=10)
 ctk.CTkButton(frm, text="Entrada", command=entrada_produto).grid(column=3, row=9, sticky="w", padx=5, pady=10)
 ctk.CTkButton(frm, text="Saída", command=saida_produto).grid(column=4, row=9, sticky="w", padx=5, pady=10)
+ctk.CTkButton(frm, text="Remover", command=remover_produto).grid(column=5, row=9, sticky="w", padx=5, pady=10)
 
 # Tabela para mostrar os dados
 tree = ttk.Treeview(root, columns=("prod_id", "Tipo do Produto", "Nome do Produto", "Medida", "Revestimento", "Cor do Revestimento", "Quantidade", "Preço", "Estado", "Observação", "Data de Entrada", "Data de Saída"), show='headings')
@@ -298,7 +312,7 @@ tree.column("Observação", width=150)
 tree.column("Data de Entrada", width=100)
 tree.column("Data de Saída", width=100)
 
-tree.grid(column=0, row=10, columnspan=5, padx=5, pady=10)
+tree.grid(column=0, row=10, columnspan=6, padx=5, pady=10)
 
 fetch_data()
 
