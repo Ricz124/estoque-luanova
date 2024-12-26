@@ -1,10 +1,10 @@
 import customtkinter as ctk
-import mysql.connector
+import pymysql
 from datetime import datetime
 from tkinter import ttk
 from tkinter import messagebox
 
-mydb = mysql.connector.connect(
+mydb = pymysql.connect(
   host="localhost",
   user="root",
   password="",
@@ -239,7 +239,7 @@ ctk.CTkLabel(frm, text="ID do Produto").grid(column=0, row=1, sticky="w", padx=5
 ctk.CTkEntry(frm, textvariable=id_var, width=50).grid(column=0, row=2, sticky="w", padx=5, pady=5)
 
 ctk.CTkLabel(frm, text="Tipo do Produto").grid(column=1, row=1, sticky="w", padx=5, pady=5)
-combobox_tipo_produto = ctk.CTkComboBox(frm, variable=tipo_produto_var, values=["Escolha Aqui", "Colchão", "Box", "Cabiçeira", "Produto Avulso"], width=150)
+combobox_tipo_produto = ctk.CTkComboBox(frm, variable=tipo_produto_var, values=["Escolha Aqui", "Colchão", "Box", "Cabeceira", "Produto Avulso"], width=150)
 combobox_tipo_produto.grid(column=1, row=2, sticky="w", padx=5, pady=5)
 
 ctk.CTkLabel(frm, text="Nome do Produto:").grid(column=2, row=1, sticky="w", padx=5, pady=5)
