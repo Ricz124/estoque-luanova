@@ -64,6 +64,12 @@ def insert_values():
     mydb.commit()
     print("Dados inseridos com sucesso!")
 
+def pegar_valores():
+    mycursor.execute("SELECT * FROM produtos")
+    myresult = mycursor.fetchall()
+    for x in myresult:
+        print(x)
+
 # Configurando o estilo do customtkinter
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
@@ -138,7 +144,7 @@ ctk.CTkLabel(frm, text="Observação:").grid(column=0, row=7, sticky="w", padx=5
 ctk.CTkEntry(frm, textvariable=observacao_var, width=600).grid(column=0, row=8, columnspan=5, sticky="w", padx=5, pady=5)
 
 # Botões
-ctk.CTkButton(frm, text="Pesquisar").grid(column=0, row=9, sticky="w", padx=5, pady=10)
+ctk.CTkButton(frm, text="Pesquisar", command=pegar_valores).grid(column=0, row=9, sticky="w", padx=5, pady=10)
 ctk.CTkButton(frm, text="Registrar", command=insert_values).grid(column=1, row=9, sticky="w", padx=5, pady=10)
 
 root.mainloop()
