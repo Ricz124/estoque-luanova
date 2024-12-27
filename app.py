@@ -1,8 +1,9 @@
 import customtkinter as ctk
 import pymysql
 from datetime import datetime
-from tkinter import ttk
-from tkinter import messagebox
+from tkinter import ttk, messagebox, Label
+from PIL import Image, ImageTk
+import os
 
 mydb = pymysql.connect(
   host="localhost",
@@ -76,6 +77,7 @@ def insert_values():
     print("Dados inseridos com sucesso!")
     fetch_data()
     clear_inputs()
+    load_image(id_var.get())
 
 def update_values():
     prod_id = id_var.get()
@@ -112,6 +114,7 @@ def update_values():
     print("Dados atualizados com sucesso!")
     fetch_data()
     clear_inputs()
+    load_image(prod_id)
 
 def entrada_produto():
     prod_id = id_var.get()
@@ -132,6 +135,7 @@ def entrada_produto():
     print("Quantidade atualizada com sucesso!")
     fetch_data()
     clear_inputs()
+    load_image(prod_id)
 
 def saida_produto():
     prod_id = id_var.get()
@@ -152,6 +156,7 @@ def saida_produto():
     print("Quantidade atualizada com sucesso!")
     fetch_data()
     clear_inputs()
+    load_image(prod_id)
 
 def remover_produto():
     prod_id = id_var.get()
@@ -164,6 +169,7 @@ def remover_produto():
     print("Produto removido com sucesso!")
     fetch_data()
     clear_inputs()
+    load_image(prod_id)
 
 def fetch_data():
     for row in tree.get_children():
@@ -184,6 +190,8 @@ def fetch_data():
     for row in rows:
         tree.insert("", "end", values=row)
     clear_inputs()
+    if rows:
+        load_image(rows[0][0])
 
 def clear_inputs():
     id_var.set("")
@@ -196,6 +204,17 @@ def clear_inputs():
     price_var.set("")
     estado_var.set("")
     observacao_var.set("")
+
+def load_image(prod_id):
+    image_path = f"images/{prod_id}.png"
+    if os.path.exists(image_path):
+        image = Image.open(image_path)
+        image = image.resize((150, 150), Image.LANCZOS)
+        photo = ImageTk.PhotoImage(image)
+        image_label.config(image=photo)
+        image_label.image = photo
+    else:
+        image_label.config(image='', text='Nulo')
 
 # Configurando o estilo do customtkinter
 ctk.set_appearance_mode("light")
@@ -313,6 +332,10 @@ tree.column("Data de Entrada", width=100)
 tree.column("Data de Saída", width=100)
 
 tree.grid(column=0, row=10, columnspan=6, padx=5, pady=10)
+
+# Label para exibir a imagem
+image_label = Label(root, text="Nulo")
+image_label.grid(column=6, row=2, rowspan=8, padx=10, pady=10)
 
 fetch_data()
 
