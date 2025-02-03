@@ -4,6 +4,7 @@ from datetime import datetime
 from tkinter import ttk, messagebox, Label
 from PIL import Image, ImageTk
 import os
+import pandas as pd
 
 mydb = pymysql.connect(
   host="localhost",
@@ -216,6 +217,14 @@ def load_image(prod_id):
     else:
         image_label.config(image='', text='Nulo')
 
+def export_to_excel():
+    mycursor.execute("SELECT * FROM produtos")
+    rows = mycursor.fetchall()
+    columns = [desc[0] for desc in mycursor.description]
+    df = pd.DataFrame(rows, columns=columns)
+    df.to_excel("produtos.xlsx", index=False)
+    messagebox.showinfo("Exportação", "Dados exportados com sucesso para produtos.xlsx")
+
 # Configurando o estilo do customtkinter
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
@@ -301,6 +310,7 @@ ctk.CTkButton(frm, text="Editar", command=update_values).grid(column=2, row=9, s
 ctk.CTkButton(frm, text="Entrada", command=entrada_produto).grid(column=3, row=9, sticky="w", padx=5, pady=10)
 ctk.CTkButton(frm, text="Saída", command=saida_produto).grid(column=4, row=9, sticky="w", padx=5, pady=10)
 ctk.CTkButton(frm, text="Remover", command=remover_produto).grid(column=5, row=9, sticky="w", padx=5, pady=10)
+ctk.CTkButton(frm, text="Exportar para Excel", command=export_to_excel).grid(column=6, row=9, sticky="w", padx=5, pady=10)
 
 # Tabela para mostrar os dados
 tree = ttk.Treeview(root, columns=("prod_id", "Tipo do Produto", "Nome do Produto", "Medida", "Revestimento", "Cor do Revestimento", "Quantidade", "Preço", "Estado", "Observação", "Data de Entrada", "Data de Saída"), show='headings')

@@ -1,1 +1,1 @@
-pyinstaller --onefile --add-data "produtos_db.sql;." --hidden-import=pymysql app.py
+pyinstaller --onefile --noconsole --add-data "produtos_db.sql;." --add-data "images/*;images" --hidden-import=pymysql app.py
